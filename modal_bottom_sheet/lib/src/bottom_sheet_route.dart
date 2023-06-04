@@ -19,7 +19,7 @@ class _ModalBottomSheet<T> extends StatefulWidget {
   }) : super(key: key);
 
   final double? closeProgressThreshold;
-  final ModalSheetRoute<T> route;
+  final BottomSheetRoute<T> route;
   final bool expanded;
   final bool bounce;
   final bool enableDrag;
@@ -75,8 +75,7 @@ class _ModalBottomSheetState<T> extends State<_ModalBottomSheet<T>> {
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
     assert(widget.route._animationController != null);
-    final scrollController = PrimaryScrollController.maybeOf(context) ??
-        (_scrollController ??= ScrollController());
+    final scrollController = PrimaryScrollController.of(context) ?? (_scrollController ??= ScrollController());
     return ModalScrollController(
       controller: scrollController,
       child: Builder(
@@ -122,8 +121,8 @@ class _ModalBottomSheetState<T> extends State<_ModalBottomSheet<T>> {
   }
 }
 
-class ModalSheetRoute<T> extends PageRoute<T> {
-  ModalSheetRoute({
+class BottomSheetRoute<T> extends PageRoute<T> {
+  BottomSheetRoute({
     this.closeProgressThreshold,
     this.containerBuilder,
     required this.builder,
@@ -189,8 +188,7 @@ class ModalSheetRoute<T> extends PageRoute<T> {
   bool get _hasScopedWillPopCallback => hasScopedWillPopCallback;
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation) {
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
     // By definition, the bottom sheet is aligned to the bottom of the page
     // and isn't exposed to the top padding of the MediaQuery.
     Widget bottomSheet = MediaQuery.removePadding(
@@ -210,12 +208,11 @@ class ModalSheetRoute<T> extends PageRoute<T> {
   }
 
   @override
-  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) =>
-      nextRoute is ModalSheetRoute;
+  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) => nextRoute is BottomSheetRoute;
 
   @override
   bool canTransitionFrom(TransitionRoute<dynamic> previousRoute) =>
-      previousRoute is ModalSheetRoute || previousRoute is PageRoute;
+      previousRoute is BottomSheetRoute || previousRoute is PageRoute;
 
   Widget getPreviousRouteTransition(
     BuildContext context,
@@ -249,15 +246,10 @@ Future<T?> showCustomModalBottomSheet<T>({
 }) async {
   assert(debugCheckHasMediaQuery(context));
   assert(debugCheckHasMaterialLocalizations(context));
-  final hasMaterialLocalizations =
-      Localizations.of<MaterialLocalizations>(context, MaterialLocalizations) !=
-          null;
-  final barrierLabel = hasMaterialLocalizations
-      ? MaterialLocalizations.of(context).modalBarrierDismissLabel
-      : '';
+  final hasMaterialLocalizations = Localizations.of<MaterialLocalizations>(context, MaterialLocalizations) != null;
+  final barrierLabel = hasMaterialLocalizations ? MaterialLocalizations.of(context).modalBarrierDismissLabel : '';
 
-  final result = await Navigator.of(context, rootNavigator: useRootNavigator)
-      .push(ModalSheetRoute<T>(
+  final result = await Navigator.of(context, rootNavigator: useRootNavigator).push(BottomSheetRoute<T>(
     builder: builder,
     bounce: bounce,
     containerBuilder: containerWidget,
